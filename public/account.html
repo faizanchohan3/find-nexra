@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Account — findNexra</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/base.css">
+<style>
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin:24px 0}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:16px 0}
+.plan{border:1px solid var(--line);border-radius:14px;padding:20px;position:relative}
+.plan.cur{border:2px solid var(--navy)}
+.plan h3{margin:0}.plan .price{font-size:30px;font-weight:800;margin:6px 0}
+.plan ul{padding-left:18px;margin:10px 0 16px;font-size:14px;line-height:1.8}
+.meter{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin:4px 0 12px}
+.meter div{height:100%;background:var(--indigo)}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;font-weight:600}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+</style></head>
+<body>
+<header class="top"><div class="wrap"><a class="logo" href="/">find<span>Nexra</span></a><nav id="nav"></nav></div></header>
+<main class="wrap" id="main"><p>Loading…</p></main>
+<footer class="foot">findNexra by Nexra LLC · Plans are billed through nexrallc.com and renew monthly. Cancel anytime from your Nexra account.</footer>
+<script src="/assets/common.js"></script>
+<script>
+const { api, esc, n } = FN;
+const FEATURES = {
+  free: ["5 searches a day", "3 AI requests a day", "Top 50 results", "10 watchlist products"],
+  starter: ["100 searches a day", "20 AI requests a day", "Top 100 results per search", "Profit & ROI calculator", "Compare 3 products", "Launch budget planner", "200 watchlist · 25 saved searches"],
+  pro: ["Everything in Starter", "100 AI requests a day", "Top 500 results per search", "Compare 10 products", "Chrome extension", "5 AI Store Manager runs a day", "1,000 watchlist · 100 saved searches"],
+  storemanager: ["Everything in Pro", "30 AI Store Manager runs a day", "AI listing writer & compliance check", "Supplier emails & quote analysis", "PPC plan & launch checklist", "Connect your Amazon store", "100 listing audits a month"],
+};
+
+async function render() {
+  const s = await api("/api/auth");
+  const m = document.getElementById("main");
+  if (!s.user) return renderLogin(m, s);
+  const u = s.user, p = s.plan;
+  const meter = (label, x) => x.max ? `<div class="muted" style="font-size:13px">${label}: <b>${n(x.used)}</b> / ${n(x.max)}</div><div class="meter"><div style="width:${Math.min(100, (x.used / x.max) * 100)}%"></div></div>` : "";
+  m.innerHTML = `
+    ${s.storage === "temporary" ? '<div class="notice">Accounts are in <b>temporary storage</b> (test mode). Add an Upstash Redis database in Vercel so accounts are saved permanently.</div>' : ""}
+    <div class="cols">
+      <div class="card"><h3>Your account</h3>
+        <p style="margin:0">${esc(u.name || "")} <span class="muted">${esc(u.email)}</span></p>
+        <p>Plan: <b>${esc(p.name)}</b>${u.planExpires && p.id !== "free" ? ` <span class="muted">· renews/ends ${new Date(u.planExpires).toLocaleDateString()}</span>` : ""}</p>
+        <button class="btn ghost sm" id="logout">Log out</button>
+      </div>
+      <div class="card"><h3>Usage</h3>
+        ${meter("Searches today", s.usage.search)}${meter("AI requests today", s.usage.ai)}${meter("AI Store Manager today", s.usage.studio)}${meter("Listing audits this month", s.usage.audit)}
+      </div>
+      <div class="card"><h3>Change password</h3>
+        <div class="field"><label>Current password</label><input id="op" type="password"></div>
+        <div class="field"><label>New password</label><input id="np" type="password"></div>
+        <button class="btn sm" id="pw">Update</button> <span id="pwmsg"></span>
+      </div>
+    </div>
+    <h2>Plans</h2>
+    <p class="muted">Buy a plan on nexrallc.com using <b>the same email (${esc(u.email)})</b>. Your plan unlocks here automatically within a minute of payment.</p>
+    ${plansHtml(s, p.id)}
+    <div class="card" style="margin-top:20px"><h3>Saved searches</h3><div id="saved" class="muted">Loading…</div></div>
+    <div class="card" style="margin-top:20px"><h3>Chrome extension</h3>
+      <p class="muted" style="margin-top:0">Pro and Store Manager. Click to get a 30-day key, then paste it into the findNexra extension settings.</p>
+      <button class="btn ghost sm" id="tok">Get extension key</button><div id="tokout"></div></div>`;
+  document.getElementById("logout").onclick = async () => { await api("/api/auth", { method: "POST", body: JSON.stringify({ action: "logout" }) }); location.reload(); };
+  document.getElementById("pw").onclick = async () => {
+    const out = document.getElementById("pwmsg");
+    try { await api("/api/auth", { method: "POST", body: JSON.stringify({ action: "password", oldPassword: op.value, newPassword: np.value }) }); out.innerHTML = '<span style="color:var(--good)">Saved</span>'; }
+    catch (e) { out.innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>`; }
+  };
+  document.getElementById("tok").onclick = async () => {
+    if (!["pro", "storemanager"].includes(p.id)) { tokout.innerHTML = FN.upgradeBox({ message: "The Chrome extension is included with Pro and Store Manager", links: s.links }); return; }
+    const t = await api("/api/auth", { method: "POST", body: JSON.stringify({ action: "token" }) });
+    tokout.innerHTML = `<div class="out" style="margin-top:10px;word-break:break-all">${esc(t.token)}</div>`;
+  };
+  loadSaved();
+}
+
+function plansHtml(s, cur) {
+  return `<div class="plans">${["free", "starter", "pro", "storemanager"].map((id) => {
+    const pl = s.plans[id];
+    const cta = id === "free" ? "" : id === cur ? '<span class="pill">Current plan</span>' : `<a class="btn sm" href="${s.links[id]}" target="_blank" rel="noopener">Get ${pl.name}</a>`;
+    return `<div class="plan ${id === cur ? "cur" : ""}"><h3>${pl.name}</h3><div class="price">$${pl.price}<span class="muted" style="font-size:14px;font-weight:400">/mo</span></div>
+      <ul>${FEATURES[id].map((f) => `<li>${esc(f)}</li>`).join("")}</ul>${cta}</div>`;
+  }).join("")}</div>`;
+}
+
+async function loadSaved() {
+  const el = document.getElementById("saved");
+  try {
+    const { items } = await api("/api/me?type=searches");
+    el.innerHTML = items.length ? `<table class="tbl">${items.map((x) => `<tr><td><a href="/?saved=${x.id}">${esc(x.name)}</a></td><td class="muted">${new Date(x.added).toLocaleDateString()}</td>
+      <td><button class="btn ghost sm" data-del="${x.id}">Delete</button></td></tr>`).join("")}</table>` : "No saved searches yet. Use “Save search” on the Research page.";
+    el.querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => { await api("/api/me?type=searches&id=" + b.dataset.del, { method: "DELETE" }); loadSaved(); }));
+  } catch (e) { el.textContent = e.message; }
+}
+
+function renderLogin(m, s) {
+  m.innerHTML = `<div class="cols"><div class="card" style="max-width:460px">
+      <div class="tabs"><button class="on" data-t="login">Log in</button><button data-t="signup">Create account</button></div>
+      <div id="nameRow" class="field" hidden><label>Your name</label><input id="nm"></div>
+      <div class="field"><label>Email</label><input id="em" type="email" autocomplete="email"></div>
+      <div class="field"><label>Password (8+ characters)</label><input id="pw1" type="password" autocomplete="current-password"></div>
+      <button class="btn" id="submit" style="width:100%">Log in</button><div id="err"></div>
+      <p class="muted" style="font-size:13px">Bought a plan on nexrallc.com? Create your account with the <b>same email</b> and it unlocks automatically.</p>
+    </div><div><h2 style="margin-top:0">Plans</h2>${plansHtml(s, "free")}</div></div>`;
+  let mode = "login";
+  m.querySelectorAll("[data-t]").forEach((b) => (b.onclick = () => {
+    mode = b.dataset.t; m.querySelectorAll("[data-t]").forEach((x) => x.classList.toggle("on", x === b));
+    nameRow.hidden = mode !== "signup"; submit.textContent = mode === "signup" ? "Create free account" : "Log in";
+  }));
+  const go = async () => {
+    try { await api("/api/auth", { method: "POST", body: JSON.stringify({ action: mode, email: em.value, password: pw1.value, name: nm.value }) });
+      const back = new URLSearchParams(location.search).get("next"); location.href = back && back.startsWith("/") ? back : "/account"; }
+    catch (e) { err.innerHTML = `<div class="notice err">${esc(e.message)}</div>`; }
+  };
+  submit.onclick = go; pw1.onkeydown = (e) => e.key === "Enter" && go();
+  if (new URLSearchParams(location.search).get("signup")) m.querySelector('[data-t="signup"]').click();
+}
+render().catch((e) => (document.getElementById("main").innerHTML = FN.errorHtml(e)));
+</script>
+</body></html>

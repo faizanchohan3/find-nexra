@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Amazon store — findNexra</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/base.css">
+<style>
+.hero{background:linear-gradient(135deg,var(--navy),var(--indigo));color:#fff;padding:26px 0 30px}
+.hero h1{margin:0 0 6px;font-size:26px}.hero p{margin:0;opacity:.85}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--bg);border-radius:10px;padding:10px 12px}.kpi b{display:block;font-size:20px}.kpi span{font-size:12px;color:var(--muted)}
+.up{color:var(--good)}.down{color:var(--bad)}
+.chk{font-size:14px;margin:4px 0}.chk.ok::before{content:"✓ ";color:var(--good);font-weight:800}.chk.no::before{content:"✗ ";color:var(--bad);font-weight:800}
+.sc{display:inline-flex;width:40px;height:40px;border-radius:50%;align-items:center;justify-content:center;font-weight:800}
+svg.chart{width:100%;height:140px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="top"><div class="wrap"><a class="logo" href="/">find<span>Nexra</span></a><nav id="nav"></nav></div></header>
+<section class="hero"><div class="wrap"><h1>My Amazon store</h1><p>Connect Seller Central (read-only) to audit your listings and see why sales go up or down.</p></div></section>
+<main class="wrap" id="main"><p>Loading…</p></main>
+<footer class="foot">findNexra only reads your listings and sales. It cannot change prices, listings or ads. You can disconnect anytime here or in Seller Central → Manage Your Apps.</footer>
+<script src="/assets/common.js"></script>
+<script>
+const { api, esc, money, n } = FN;
+const m = document.getElementById("main");
+
+async function init() {
+  const st = await FN.loadStatus();
+  if (!st.user) { m.innerHTML = FN.upgradeBox({ message: "Log in with a Store Manager plan to connect your Amazon store", links: st.links }); return; }
+  const a = await api("/api/amazon?action=status");
+  if (!a.allowed) { m.innerHTML = FN.upgradeBox({ message: "Connecting your Amazon store is part of the Store Manager plan ($99/mo)", links: st.links }); return; }
+  if (!a.configured) { m.innerHTML = '<div class="notice">The Amazon connection is being set up by Nexra (waiting for Amazon SP-API approval). Check back soon.</div>'; return; }
+  if (!a.connection) {
+    m.innerHTML = `<div class="card" style="margin:24px 0;max-width:640px"><h3>Connect your Amazon Seller Central</h3>
+      <p>You'll be sent to Amazon to approve <b>read-only</b> access. findNexra will read your listings, listing issues and sales totals.</p>
+      <button class="btn" id="cn">Connect Amazon store</button></div>`;
+    document.getElementById("cn").onclick = async () => { const r = await api("/api/amazon?action=connect"); location.href = r.url; };
+    return;
+  }
+  m.innerHTML = `${new URLSearchParams(location.search).get("connected") ? '<div class="notice ok">Your Amazon store is connected.</div>' : ""}
+    <p class="muted">Seller ID ${esc(a.connection.sellerId)} · connected ${new Date(a.connection.connectedAt).toLocaleDateString()} · <a href="#" id="dc">Disconnect</a></p>
+    <div class="grid2">
+      <div class="card"><h3>Sales diagnosis <select id="days" style="float:right;padding:4px"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option></select></h3><div id="sales">Loading…</div></div>
+      <div class="card"><h3>Listing audit</h3><p class="muted" style="margin-top:0">Checks 20 listings per run for Amazon issues, content quality and policy wording. Uses 1 of your monthly audits.</p><button class="btn sm" id="au">Run listing audit</button></div>
+    </div>
+    <div id="audits"></div>`;
+  document.getElementById("dc").onclick = async (e) => { e.preventDefault(); if (!confirm("Disconnect your Amazon store from findNexra?")) return; await api("/api/amazon", { method: "POST", body: JSON.stringify({ action: "disconnect" }) }); location.reload(); };
+  document.getElementById("days").onchange = sales; sales();
+  document.getElementById("au").onclick = () => audit();
+}
+
+function chart(rows) {
+  if (rows.length < 2) return "";
+  const w = 460, h = 140, max = Math.max(...rows.map((r) => r.units), 1);
+  const x = (i) => 10 + (i / (rows.length - 1)) * (w - 20), y = (v) => h - 20 - (v / max) * (h - 40);
+  const mid = Math.floor(rows.length / 2);
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><line x1="${x(mid)}" x2="${x(mid)}" y1="5" y2="${h - 20}" stroke="#e5e7eb" stroke-dasharray="4"/>
+    <path d="${rows.map((r, i) => (i ? "L" : "M") + x(i) + " " + y(r.units)).join(" ")}" fill="none" stroke="#1e1b8f" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <text x="10" y="${h - 4}" font-size="11" fill="#6b7280">${rows[0].day}</text><text x="${w - 10}" y="${h - 4}" font-size="11" fill="#6b7280" text-anchor="end">${rows[rows.length - 1].day}</text></svg>
+    <p class="muted" style="font-size:12px;margin:0">Units per day · dashed line = start of the current period</p>`;
+}
+
+async function sales() {
+  const el = document.getElementById("sales"); el.textContent = "Loading…";
+  try {
+    const d = await api("/api/amazon?action=sales&days=" + document.getElementById("days").value);
+    const ch = (v) => (v == null ? "" : `<span class="${v >= 0 ? "up" : "down"}">${v >= 0 ? "▲" : "▼"} ${Math.abs(v)}%</span>`);
+    el.innerHTML = `<div class="kpis"><div class="kpi"><b>${n(d.current.units)}</b><span>Units ${ch(d.change.units)}</span></div>
+      <div class="kpi"><b>${money(d.current.sales, 0)}</b><span>Sales ${ch(d.change.sales)}</span></div><div class="kpi"><b>${n(d.current.orders)}</b><span>Orders</span></div></div>
+      ${chart(d.daily)}<h3 style="margin-top:14px">What we found</h3><ul>${d.findings.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>`;
+  } catch (e) { el.innerHTML = FN.errorHtml(e); }
+}
+
+async function audit(next) {
+  const el = document.getElementById("audits"); el.innerHTML = '<p>Auditing listings…</p>';
+  try {
+    const d = await api("/api/amazon?action=audit" + (next ? "&next=" + encodeURIComponent(next) : ""));
+    const cls = (s) => (s >= 80 ? "background:var(--goodbg);color:var(--good)" : s >= 55 ? "background:var(--midbg);color:var(--mid)" : "background:var(--badbg);color:var(--bad)");
+    el.innerHTML = d.audits.length ? d.audits.sort((a, b) => a.score - b.score).map((a) => `<div class="card" style="margin:12px 0">
+      <div style="display:flex;gap:12px;align-items:center"><span class="sc" style="${cls(a.score)}">${a.score}</span><div><b>${esc(a.title || a.sku)}</b><div class="muted" style="font-size:13px">SKU ${esc(a.sku)} · ASIN ${esc(a.asin || "—")}</div></div>
+      <a class="btn ghost sm" style="margin-left:auto" href="/studio?tool=listing&title=${encodeURIComponent(a.title || "")}">Rewrite with AI</a></div>
+      ${a.checks.map((c) => `<div class="chk ${c.ok ? "ok" : "no"}">${esc(c.label)}${c.ok ? "" : ` — <span class="muted">${esc(c.fix)}</span>`}</div>`).join("")}
+      ${a.amazonIssues.length ? `<details><summary class="muted">Amazon issues (${a.amazonIssues.length})</summary><ul>${a.amazonIssues.map((x) => `<li><b>${esc(x.severity)}</b> ${esc(x.message)}</li>`).join("")}</ul></details>` : ""}
+      ${a.policyIssues.length ? `<details><summary class="muted">Policy wording (${a.policyIssues.length})</summary><ul>${a.policyIssues.map((x) => `<li>${esc(x.field)}: ${esc(x.problem)} ${x.found ? "— “" + esc(x.found) + "”" : ""}</li>`).join("")}</ul></details>` : ""}
+    </div>`).join("") + (d.next ? `<button class="btn ghost" onclick="audit('${esc(d.next)}')">Audit next 20 listings</button>` : "") : '<p class="muted">No listings found in this marketplace.</p>';
+  } catch (e) { el.innerHTML = FN.errorHtml(e); }
+}
+init().catch((e) => (m.innerHTML = FN.errorHtml(e)));
+</script>
+</body></html>

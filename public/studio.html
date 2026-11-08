@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Store Manager — findNexra</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/base.css">
+<style>
+.hero{background:linear-gradient(135deg,var(--navy),var(--indigo));color:#fff;padding:26px 0 30px}
+.hero h1{margin:0 0 6px;font-size:26px}.hero p{margin:0;opacity:.85}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:20px 0}
+.tabs button{padding:9px 14px;border:1px solid var(--line);background:#fff;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.lay{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+.res h3{margin:18px 0 8px}
+.res .item{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0}
+.copy{float:right;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer}
+.issue{background:var(--badbg);color:var(--bad);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}
+.okk{background:var(--goodbg);color:var(--good);border-radius:8px;padding:8px 10px;font-size:14px}
+.crm td input,.crm td select{width:100%;padding:5px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+.len{font-size:12px;color:var(--muted);float:right}
+@media (max-width:860px){.lay{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header class="top"><div class="wrap"><a class="logo" href="/">find<span>Nexra</span></a><nav id="nav"></nav></div></header>
+<section class="hero"><div class="wrap"><h1>AI Store Manager</h1><p>Write listings, find and compare suppliers, plan PPC and run your product launch — step by step.</p></div></section>
+<main class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div id="msg"></div>
+  <div class="lay"><div class="card" id="form"></div><div class="card res" id="out"><p class="muted">Fill in the form and click the button. Results appear here.</p></div></div>
+  <div class="card" style="margin-top:20px" id="crmCard" hidden><h3>Supplier CRM</h3><div id="crm"></div></div>
+  <div class="card" style="margin-top:20px"><h3>Saved projects</h3><div id="projects" class="muted">Log in to see saved projects.</div></div>
+</main>
+<footer class="foot">AI suggestions can be wrong — check facts, claims and numbers before you use them. You send all supplier emails yourself.</footer>
+<script src="/assets/common.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const { api, esc, money } = FN;
+const qs = new URLSearchParams(location.search);
+const PREFILL = qs.get("title") || "";
+const TOOLS = {
+  listing: { name: "Listing writer", btn: "Write listing", fields: [
+    ["product", "Product name", "text", PREFILL], ["brand", "Brand name"], ["features", "Key features & materials (one per line)", "area"],
+    ["keywords", "Keywords customers search (comma separated)", "area"], ["audience", "Who is it for?"], ["tone", "Tone (e.g. premium, friendly)"]] },
+  supplier: { name: "Supplier finder", btn: "Find suppliers & draft email", fields: [
+    ["product", "Product", "text", PREFILL], ["specs", "Specs (size, material, colour, packaging)", "area"], ["targetCost", "Target unit cost ($)", "number"],
+    ["moq", "Order quantity (MOQ)", "number"], ["destination", "Ship to"], ["yourName", "Your name"], ["company", "Company name", "text", "Nexra LLC"]] },
+  quote: { name: "Quote analysis", btn: "Analyse quotes", fields: [
+    ["replies", "Paste supplier replies (separate suppliers with a blank line or ---)", "area"], ["targetCost", "Target landed cost / unit ($)", "number"]] },
+  ppc: { name: "PPC plan", btn: "Build PPC plan", fields: [
+    ["product", "Product", "text", PREFILL], ["price", "Selling price ($)", "number"], ["marginPct", "Margin before ads (%)", "number", "30"],
+    ["dailyBudget", "Daily ad budget ($)", "number", "30"], ["keywords", "Main keywords (comma separated)", "area"], ["competitors", "Competitor ASINs (optional)"]] },
+  launch: { name: "Launch plan (13 phases)", btn: "Create launch plan", fields: [
+    ["product", "Product", "text", PREFILL], ["budget", "Total budget ($)", "number"], ["launchDate", "Target launch date", "date"],
+    ["experience", "Your experience", "select", "", ["beginner", "1-2 products launched", "experienced"]]] },
+  compliance: { name: "Compliance check (free)", btn: "Check my listing", fields: [
+    ["title", "Title", "area"], ["bullets", "Bullets (one per line)", "area"], ["description", "Description", "area"], ["searchTerms", "Backend search terms", "area"]] },
+};
+let TAB = qs.get("tool") || "listing", LAST = null, STATUS = null;
+
+function renderTabs() {
+  $("tabs").innerHTML = Object.entries(TOOLS).map(([k, t]) => `<button class="${k === TAB ? "on" : ""}" data-t="${k}">${t.name}</button>`).join("");
+  const t = TOOLS[TAB];
+  $("form").innerHTML = t.fields.map(([k, label, type = "text", val = "", opts]) => `<div class="field"><label>${label}</label>${
+    type === "area" ? `<textarea id="i-${k}" rows="${k === "replies" ? 10 : 4}">${esc(val)}</textarea>` :
+    type === "select" ? `<select id="i-${k}">${opts.map((o) => `<option>${o}</option>`).join("")}</select>` :
+    `<input id="i-${k}" type="${type}" value="${esc(val)}">`}</div>`).join("") + `<button class="btn" id="run" style="width:100%">${t.btn}</button>
+    <p class="muted" style="font-size:12px">${TAB === "compliance" ? "Free for everyone." : "Uses 1 AI Store Manager run (Pro: 5/day · Store Manager: 30/day)."}</p>`;
+  $("run").onclick = run;
+  $("crmCard").hidden = TAB !== "supplier";
+  if (TAB === "supplier") loadCrm();
+}
+
+function input() {
+  const o = {};
+  for (const [k] of TOOLS[TAB].fields) o[k] = $("i-" + k).value;
+  if (TAB === "compliance") o.bullets = o.bullets.split("\n").filter((x) => x.trim());
+  return o;
+}
+
+async function run() {
+  const b = $("run"), lbl = b.textContent; b.innerHTML = '<span class="spin"></span> Working…'; b.disabled = true; $("msg").innerHTML = "";
+  try {
+    const r = await api("/api/studio", { method: "POST", body: JSON.stringify({ tool: TAB, input: input() }) });
+    LAST = TAB === "compliance" ? { tool: TAB, result: r } : r;
+    show(TAB, LAST.result, LAST.ai);
+  } catch (e) { $("msg").innerHTML = FN.errorHtml(e); }
+  finally { b.textContent = lbl; b.disabled = false; }
+}
+
+const copyBtn = (text) => `<button class="copy" data-copy="${esc(text)}">Copy</button>`;
+const list = (a) => `<ul>${(a || []).map((x) => `<li>${esc(typeof x === "string" ? x : JSON.stringify(x))}</li>`).join("")}</ul>`;
+function complianceHtml(c) {
+  return c.ok ? '<div class="okk">No policy problems found by the automatic check.</div>' : c.issues.map((i) => `<div class="issue"><b>${esc(i.field)}:</b> ${esc(i.problem)}${i.found ? ` — “${esc(i.found)}”` : ""}</div>`).join("");
+}
+
+function show(tool, r, usedAi) {
+  const demo = r.demo ? '<div class="notice">Demo answer — add the Claude API key in Vercel for full AI results.</div>' : "";
+  let h = "";
+  if (tool === "listing") {
+    h = `<h3>Title <span class="len">${r.title.length}/200</span></h3><div class="out">${copyBtn(r.title)}${esc(r.title)}</div>
+      <h3>Bullet points</h3>${r.bullets.map((b) => `<div class="out" style="margin:6px 0">${copyBtn(b)}${esc(b)}</div>`).join("")}
+      <h3>Description</h3><div class="out">${copyBtn(r.description)}${esc(r.description)}</div>
+      <h3>Backend search terms <span class="len">${new Blob([r.searchTerms]).size}/249 bytes</span></h3><div class="out">${copyBtn(r.searchTerms)}${esc(r.searchTerms)}</div>
+      <h3>Compliance check</h3>${complianceHtml(r.compliance)}
+      <h3>Image brief</h3>${(r.imageBrief || []).map((x, i) => `<div class="item"><b>${i + 1}. ${esc(x.shot)}</b>${x.notes ? `<div class="muted">${esc(x.notes)}</div>` : ""}</div>`).join("")}`;
+  } else if (tool === "supplier") {
+    h = `<h3>Search these supplier sites</h3>${r.links.map((l) => `<div class="item"><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.site)} ↗</a></div>`).join("")}
+      <h3>Verification checklist</h3>${list(r.checklist)}
+      <h3>First email (you send it)</h3><div class="out"><b>Subject:</b> ${esc(r.email.subject)}\n\n${copyBtn(r.email.body)}${esc(r.email.body)}</div>
+      <h3>Questions for your follow-up call</h3>${list(r.email.followUpQuestions)}
+      <p><button class="btn ghost sm" onclick="addSupplier()">+ Add a supplier to CRM</button></p>`;
+  } else if (tool === "quote") {
+    h = `<h3>Suppliers compared</h3><div style="overflow-x:auto"><table class="tbl"><tr><th>Supplier</th><th>Price</th><th>MOQ</th><th>Sample</th><th>Lead time</th><th>Payment</th><th>Score</th><th>Red flags</th></tr>
+      ${r.suppliers.map((x) => `<tr><td>${esc(x.name)}</td><td>${esc(x.unitPrice)}</td><td>${esc(x.moq)}</td><td>${esc(x.sampleCost)}</td><td>${esc(x.leadTime)}</td><td>${esc(x.paymentTerms)}</td><td><b>${esc(x.score)}</b>/10</td><td style="color:var(--bad)">${(x.redFlags || []).map(esc).join("<br>")}</td></tr>`).join("")}</table></div>
+      <h3>Recommendation</h3><div class="out">${esc(r.recommendation)}</div>
+      ${r.negotiationReply ? `<h3>Negotiation reply</h3><div class="out">${copyBtn(r.negotiationReply)}${esc(r.negotiationReply)}</div>` : ""}`;
+  } else if (tool === "ppc") {
+    h = `<div class="kpi" style="background:var(--bg);border-radius:10px;padding:10px 14px;display:inline-block"><b style="font-size:20px">${esc(r.targetAcos)}%</b> <span class="muted">target ACoS (break-even)</span></div>
+      <h3>Campaigns</h3>${r.campaigns.map((c) => `<div class="item"><b>${esc(c.name)}</b> <span class="pill">${esc(c.match)}</span> <span class="pill">${money(c.dailyBudget, 0)}/day</span> <span class="pill">bid ${money(c.bid)}</span>
+        <div class="muted" style="font-size:13px;margin-top:6px">${(c.targets || []).map(esc).join(" · ") || "—"}</div></div>`).join("")}
+      <h3>Negative keywords</h3><div class="out">${copyBtn((r.negativeKeywords || []).join("\n"))}${(r.negativeKeywords || []).map(esc).join(", ")}</div>
+      <h3>Week-by-week</h3>${(r.weeklyPlan || []).map((w) => `<div class="item"><b>Week ${esc(w.week)}</b>${list(w.actions)}</div>`).join("")}
+      ${r.tips ? `<h3>Tips</h3>${list(r.tips)}` : ""}`;
+  } else if (tool === "launch") {
+    h = `${r.totalDays ? `<p><b>About ${esc(r.totalDays)} days</b> from start to launch.</p>` : ""}
+      ${r.phases.map((p) => `<div class="item"><b>${esc(p.phase)}. ${esc(p.name)}</b> ${p.days ? `<span class="pill">${esc(p.days)} days</span>` : ""} ${p.estCost ? `<span class="pill">${esc(p.estCost)}</span>` : ""}
+        ${(p.tasks || []).map((t, i) => `<div><label><input type="checkbox" data-lt="${p.phase}-${i}"> ${esc(t)}</label></div>`).join("")}</div>`).join("")}
+      ${r.risks ? `<h3>Biggest risks</h3>${list(r.risks)}` : ""}${r.notes ? `<p class="muted">${esc(r.notes)}</p>` : ""}`;
+  } else if (tool === "compliance") {
+    h = `<h3>Result</h3>${complianceHtml(r)}<p class="muted" style="font-size:13px">Checks common Amazon policy problems: claims, promotions, guarantees, emojis, ALL CAPS, special characters, length and search-term bytes.</p>`;
+  }
+  $("out").innerHTML = demo + h + (tool !== "compliance" ? `<p style="margin-top:18px"><button class="btn sm" onclick="saveProject()">Save to projects</button></p>` : "");
+  restoreChecks();
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-t]"); if (t) { TAB = t.dataset.t; renderTabs(); $("out").innerHTML = '<p class="muted">Fill in the form and click the button.</p>'; }
+  const c = e.target.closest("[data-copy]"); if (c) { navigator.clipboard?.writeText(c.dataset.copy); c.textContent = "Copied"; setTimeout(() => (c.textContent = "Copy"), 1200); }
+});
+document.addEventListener("change", (e) => {
+  const lt = e.target.closest("[data-lt]"); if (!lt) return;
+  try { const k = "fn_launch_" + (input().product || ""); const st = JSON.parse(localStorage.getItem(k) || "{}"); st[lt.dataset.lt] = lt.checked; localStorage.setItem(k, JSON.stringify(st)); } catch {}
+});
+function restoreChecks() { try { const st = JSON.parse(localStorage.getItem("fn_launch_" + (input().product || "")) || "{}"); document.querySelectorAll("[data-lt]").forEach((x) => (x.checked = !!st[x.dataset.lt])); } catch {} }
+
+async function saveProject() {
+  if (!LAST) return;
+  const name = prompt("Project name:", (input().product || TOOLS[TAB].name).slice(0, 80)); if (!name) return;
+  try { await api("/api/me", { method: "POST", body: JSON.stringify({ type: "projects", item: { name, tool: TAB, input: input(), result: LAST.result } }) }); loadProjects(); $("msg").innerHTML = '<div class="notice ok">Saved.</div>'; }
+  catch (e) { $("msg").innerHTML = FN.errorHtml(e); }
+}
+async function loadProjects() {
+  if (!STATUS?.user) return;
+  try {
+    const { items } = await api("/api/me?type=projects");
+    $("projects").innerHTML = items.length ? `<table class="tbl">${items.map((p) => `<tr><td><a href="#" data-p="${p.id}">${esc(p.name)}</a></td><td>${esc(TOOLS[p.tool]?.name || p.tool)}</td><td class="muted">${new Date(p.added).toLocaleDateString()}</td><td><button class="btn ghost sm" data-pd="${p.id}">Delete</button></td></tr>`).join("")}</table>` : "No saved projects yet.";
+    $("projects").querySelectorAll("[data-p]").forEach((a) => (a.onclick = (e) => { e.preventDefault(); const p = items.find((x) => x.id === a.dataset.p); TAB = p.tool; renderTabs(); for (const [k, v] of Object.entries(p.input || {})) if ($("i-" + k)) $("i-" + k).value = Array.isArray(v) ? v.join("\n") : v; LAST = p; show(p.tool, p.result); scrollTo(0, 0); }));
+    $("projects").querySelectorAll("[data-pd]").forEach((b) => (b.onclick = async () => { await api("/api/me?type=projects&id=" + b.dataset.pd, { method: "DELETE" }); loadProjects(); }));
+  } catch (e) { $("projects").textContent = e.message; }
+}
+
+// Supplier CRM
+const ST = ["new", "contacted", "sample", "negotiating", "chosen", "rejected"];
+let CRM = [];
+async function loadCrm() {
+  if (!STATUS?.user) { $("crm").innerHTML = '<p class="muted">Log in to keep a supplier list.</p>'; return; }
+  try { CRM = (await api("/api/me?type=suppliers")).items; drawCrm(); } catch (e) { $("crm").innerHTML = FN.errorHtml(e); }
+}
+function drawCrm() {
+  $("crm").innerHTML = CRM.length ? `<div style="overflow-x:auto"><table class="tbl crm"><tr><th>Supplier</th><th>Link / contact</th><th>Price</th><th>MOQ</th><th>Lead time</th><th>Status</th><th>Notes</th><th></th></tr>
+    ${CRM.map((s) => `<tr data-id="${s.id}"><td><input data-f="name" value="${esc(s.name)}"></td><td><input data-f="url" value="${esc(s.url)}" placeholder="URL or email"></td><td><input data-f="unitPrice" value="${esc(s.unitPrice)}"></td><td><input data-f="moq" value="${esc(s.moq)}"></td><td><input data-f="leadTime" value="${esc(s.leadTime)}"></td>
+      <td><select data-f="status">${ST.map((x) => `<option ${x === s.status ? "selected" : ""}>${x}</option>`).join("")}</select></td><td><input data-f="notes" value="${esc(s.notes)}"></td>
+      <td style="white-space:nowrap"><button class="btn sm" data-save="${s.id}">Save</button> <button class="btn ghost sm" data-del="${s.id}">×</button></td></tr>`).join("")}</table></div>` : '<p class="muted">No suppliers yet.</p>';
+  $("crm").insertAdjacentHTML("beforeend", '<button class="btn ghost sm" onclick="addSupplier()">+ Add supplier</button>');
+  $("crm").querySelectorAll("[data-save]").forEach((b) => (b.onclick = async () => {
+    const row = b.closest("tr"), item = { id: b.dataset.save, product: input().product };
+    row.querySelectorAll("[data-f]").forEach((i) => (item[i.dataset.f] = i.value));
+    try { CRM = (await api("/api/me", { method: "POST", body: JSON.stringify({ type: "suppliers", item }) })).items; b.textContent = "Saved"; setTimeout(drawCrm, 700); } catch (e) { $("msg").innerHTML = FN.errorHtml(e); }
+  }));
+  $("crm").querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => { CRM = (await api("/api/me?type=suppliers&id=" + b.dataset.del, { method: "DELETE" })).items; drawCrm(); }));
+}
+async function addSupplier() {
+  try { CRM = (await api("/api/me", { method: "POST", body: JSON.stringify({ type: "suppliers", item: { name: "New supplier", product: input().product || "" } }) })).items; drawCrm(); $("crmCard").scrollIntoView({ behavior: "smooth" }); }
+  catch (e) { $("msg").innerHTML = FN.errorHtml(e); }
+}
+
+FN.loadStatus().then((s) => { STATUS = s; renderTabs(); loadProjects(); if (!s.user) $("msg").innerHTML = FN.upgradeBox({ message: "AI Store Manager is part of Pro (5 runs/day) and Store Manager (30 runs/day). The compliance check is free", links: s.links }); }).catch(() => renderTabs());
+</script>
+</body></html>
