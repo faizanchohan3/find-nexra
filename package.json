@@ -1,0 +1,13 @@
+{
+  "name": "findnexra",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "findNexra — AI Amazon product finder by Nexra LLC",
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

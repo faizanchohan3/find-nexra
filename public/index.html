@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>findNexra — AI Amazon Product Finder</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Find winning Amazon products with AI. Filters, opportunity score, profit calculator and price history. By Nexra LLC.">
+<style>
+:root{--navy:#04023A;--indigo:#1e1b8f;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f5f6fb;--good:#0f7a4a;--goodbg:#e6f6ee;--mid:#9a6700;--midbg:#fff4d6;--bad:#b42318;--badbg:#fdecea;--radius:12px}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.5}
+a{color:var(--indigo)}
+button,input,select,textarea{font:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header{background:var(--navy);color:#fff}
+header .wrap{display:flex;align-items:center;gap:16px;height:64px}
+.logo{font-weight:800;font-size:22px;letter-spacing:.2px;color:#fff;text-decoration:none}
+.logo span{color:#a5b4fc}
+.badge{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.14)}
+.badge.live{background:#16a34a}
+.spacer{flex:1}
+.hbtn{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.22)}
+.hero{background:linear-gradient(135deg,var(--navy),var(--indigo));color:#fff;padding:36px 0 44px}
+.hero h1{margin:0 0 6px;font-size:30px;line-height:1.2}
+.hero p{margin:0 0 20px;opacity:.85}
+.askbox{display:flex;gap:10px;background:#fff;border-radius:14px;padding:8px}
+.askbox textarea{flex:1;border:0;resize:none;outline:none;padding:10px 12px;font-size:16px;color:var(--ink);min-height:48px}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:10px;padding:12px 22px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--indigo)}
+.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:14px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.chip:hover{background:rgba(255,255,255,.26)}
+.panel{border:1px solid var(--line);border-radius:var(--radius);margin:20px 0;background:#fff}
+.panel summary{cursor:pointer;padding:14px 18px;font-weight:700;list-style:none}
+.panel summary::-webkit-details-marker{display:none}
+.panel summary::after{content:"▾";float:right;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:0 18px 18px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.field input,.field select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.sub{padding:0 18px;margin:6px 0 10px;font-size:13px;font-weight:700;color:var(--navy)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0}
+.bar .info{flex:1;color:var(--muted);font-size:14px}
+.tag{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0;color:var(--ink)}
+.notice{background:var(--midbg);color:#7a5200;border-radius:10px;padding:10px 14px;font-size:14px;margin:14px 0}
+.err{background:var(--badbg);color:var(--bad)}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer}
+.tbl td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:hover td{background:#fafafe}
+.pimg{width:52px;height:52px;border-radius:8px;object-fit:contain;background:var(--bg);display:block}
+.ph{width:52px;height:52px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px}
+.ttl{font-weight:600;max-width:360px}
+.ttl small{display:block;color:var(--muted);font-weight:400}
+.note{color:#374151;font-size:13px;margin-top:4px}
+.score{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;font-weight:800}
+.s-good{background:var(--goodbg);color:var(--good)}.s-mid{background:var(--midbg);color:var(--mid)}.s-bad{background:var(--badbg);color:var(--bad)}
+.num{white-space:nowrap}
+.muted{color:var(--muted)}
+.star{background:none;border:0;cursor:pointer;font-size:20px;color:#c7c9d1;padding:0 4px}
+.star.on{color:#f59e0b}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+.scroll{overflow-x:auto}
+.overlay{position:fixed;inset:0;background:rgba(4,2,58,.45);display:none;align-items:flex-start;justify-content:center;padding:30px 12px;overflow:auto;z-index:50}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;max-width:920px;width:100%;padding:24px;position:relative}
+.close{position:absolute;right:14px;top:10px;border:0;background:none;font-size:26px;cursor:pointer;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h3{margin:0 0 10px;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--bg);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font-size:18px}
+.kpi span{font-size:12px;color:var(--muted)}
+.brk{display:grid;grid-template-columns:110px 1fr 46px;gap:8px;align-items:center;font-size:13px;margin:6px 0}
+.track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.fill{height:100%;background:var(--indigo)}
+.pc{display:grid;grid-template-columns:1fr 110px;gap:6px 10px;font-size:14px;align-items:center}
+.pc input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.pc .tot{font-weight:800;border-top:1px solid var(--line);padding-top:8px}
+ul.r{margin:0;padding-left:18px;font-size:14px}
+ul.r.good li::marker{color:var(--good)}ul.r.bad li::marker{color:var(--bad)}
+svg.chart{width:100%;height:150px}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:30px 20px 40px;border-top:1px solid var(--line);margin-top:40px}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.badge,.hbtn{white-space:nowrap}
+@media (max-width:760px){.two{grid-template-columns:1fr}.hero h1{font-size:24px}.askbox{flex-direction:column}.askbox textarea{min-height:72px}.hide-sm{display:none}.hbtn{padding:7px 10px;font-size:13px}.badge{font-size:11px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="./">find<span>Nexra</span></a>
+  <span id="mode" class="badge">…</span>
+  <span class="spacer"></span>
+  <button class="hbtn" id="watchBtn">★ Watchlist (<span id="wcount">0</span>)</button>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1>Find winning Amazon products with AI</h1>
+  <p>Describe what you want in English or Roman Urdu. findNexra searches Amazon data, scores every product and estimates your profit.</p>
+  <div class="askbox">
+    <textarea id="q" rows="1" placeholder='e.g. "$20–60 kitchen products, under 400 reviews, 25% margin"'></textarea>
+    <button class="btn" id="go">Find products</button>
+  </div>
+  <div class="chips" id="examples"></div>
+</div></section>
+
+<main class="wrap">
+  <details class="panel" id="filters">
+    <summary>Filters &amp; your costs</summary>
+    <div class="sub">Product filters (these override what the AI understood)</div>
+    <div class="grid">
+      <div class="field"><label>Category</label><select id="f-category"><option value="">Any</option></select></div>
+      <div class="field"><label>Keyword</label><input id="f-keyword" placeholder="e.g. yoga mat"></div>
+      <div class="field"><label>Min price ($)</label><input id="f-minPrice" type="number" min="0" step="1"></div>
+      <div class="field"><label>Max price ($)</label><input id="f-maxPrice" type="number" min="0" step="1"></div>
+      <div class="field"><label>Max reviews</label><input id="f-maxReviews" type="number" min="0"></div>
+      <div class="field"><label>Min rating</label><input id="f-minRating" type="number" min="1" max="5" step="0.1"></div>
+      <div class="field"><label>Min sales / month</label><input id="f-minMonthlySales" type="number" min="0"></div>
+      <div class="field"><label>Max sales rank</label><input id="f-maxRank" type="number" min="1"></div>
+      <div class="field"><label>Max sellers</label><input id="f-maxSellers" type="number" min="1"></div>
+      <div class="field"><label>Min margin (%)</label><input id="f-minMargin" type="number" min="0" max="90"></div>
+    </div>
+    <div class="sub">Your costs (used for profit and score)</div>
+    <div class="grid">
+      <div class="field"><label>Supplier cost (% of price)</label><input id="c-supplierPct" type="number" value="30" min="0" max="100"></div>
+      <div class="field"><label>Freight per unit ($)</label><input id="c-freightPerUnit" type="number" value="1" min="0" step="0.1"></div>
+      <div class="field"><label>Ads (% of price)</label><input id="c-adsPct" type="number" value="10" min="0" max="100"></div>
+      <div class="field"><label>Returns (% of price)</label><input id="c-returnsPct" type="number" value="3" min="0" max="100"></div>
+    </div>
+    <div style="padding:0 18px 18px;display:flex;gap:10px">
+      <button class="btn sm" id="apply">Apply filters</button>
+      <button class="btn ghost sm" id="reset">Clear</button>
+    </div>
+  </details>
+
+  <div id="msg"></div>
+  <div class="bar" id="bar" hidden>
+    <div class="info" id="info"></div>
+    <label class="muted" style="font-size:14px">Sort
+      <select id="sort" style="padding:6px;border:1px solid var(--line);border-radius:8px">
+        <option value="score">Opportunity score</option><option value="monthlySales">Sales / month</option>
+        <option value="revenue">Revenue / month</option><option value="margin">Margin</option>
+        <option value="price">Price</option><option value="reviews">Fewest reviews</option>
+      </select></label>
+    <button class="btn ghost sm" id="csv">Export CSV</button>
+  </div>
+  <div class="scroll"><table class="tbl" id="tbl" hidden>
+    <thead><tr>
+      <th></th><th>Product</th><th>Score</th><th>Price</th><th>Sales/mo</th><th class="hide-sm">Revenue/mo</th>
+      <th>Reviews</th><th class="hide-sm">Rating</th><th class="hide-sm">Sellers</th><th>Margin</th><th>Profit/unit</th><th></th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <p class="muted" id="foot" style="font-size:12px" hidden>* Estimated from Best Sellers Rank. Click a product for price &amp; rank history, score breakdown and a full profit calculator.</p>
+  <div class="empty" id="empty">Ask a question above or open <b>Filters</b> to start.</div>
+</main>
+
+<div class="overlay" id="ov"><div class="modal" id="modal"></div></div>
+
+<footer>
+  Sales, revenue and profit figures are estimates for research only and are not guarantees of results.
+  findNexra is an independent tool by Nexra LLC and is not affiliated with, endorsed or sponsored by Amazon.com, Inc.
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const FILTERS = ["category","keyword","minPrice","maxPrice","maxReviews","minRating","minMonthlySales","maxRank","maxSellers","minMargin"];
+const COSTS = ["supplierPct","freightPerUnit","adsPct","returnsPct"];
+const EXAMPLES = [
+  "$20–60 kitchen products, under 400 reviews, 25% margin",
+  "pet products kam reviews acha munafa",
+  "sells well, $15–40, few sellers, beauty",
+  "yoga under $30, 4 star",
+  "home organizer 300+ sales good margin",
+];
+let STATE = { products: [], last: null, sort: "score" };
+
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+let WATCH = store.get("fn_watch", {});
+const code = () => store.get("fn_code", "") || new URLSearchParams(location.search).get("code") || "";
+
+function money(x, d = 2) { return x == null ? "—" : "$" + Number(x).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function n(x) { return x == null ? "—" : Number(x).toLocaleString(); }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function scls(s) { return s >= 70 ? "s-good" : s >= 50 ? "s-mid" : "s-bad"; }
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { "content-type": "application/json", "x-access-code": code(), ...(opts.headers || {}) } });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    const c = prompt("findNexra is for members. Enter your access code:");
+    if (c) { store.set("fn_code", c); return api(path, opts); }
+  }
+  if (!res.ok) throw new Error(data.error || "Something went wrong");
+  return data;
+}
+
+function readFilters() {
+  const f = {};
+  for (const k of FILTERS) { const v = $("f-" + k).value.trim(); if (v !== "") f[k] = k === "category" || k === "keyword" ? v : Number(v); }
+  return f;
+}
+function readCosts() { const c = {}; for (const k of COSTS) c[k] = Number($("c-" + k).value || 0); return c; }
+
+function setMsg(html, cls = "") { $("msg").innerHTML = html ? `<div class="notice ${cls}">${html}</div>` : ""; }
+
+async function run(useForm) {
+  const query = $("q").value.trim();
+  const filters = useForm ? readFilters() : {};
+  if (!query && !Object.keys(filters).length) { setMsg("Type what you are looking for, or set at least one filter.", "err"); return; }
+  $("go").innerHTML = '<span class="spin"></span>'; $("go").disabled = true; setMsg("");
+  try {
+    const r = await api("/api/search", { method: "POST", body: JSON.stringify({ query, filters, costs: readCosts() }) });
+    STATE.products = r.products; STATE.last = r;
+    if (r.mode === "demo") setMsg("Showing <b>demo data</b> — sample products to show how findNexra works. Real Amazon data turns on when the Keepa API key is added.");
+    if (r.aiError) setMsg("AI was not available, used the basic parser instead: " + esc(r.aiError), "err");
+    for (const k of FILTERS) if (r.filters[k] != null) $("f-" + k).value = r.filters[k];
+    render();
+  } catch (e) { setMsg(esc(e.message), "err"); }
+  finally { $("go").textContent = "Find products"; $("go").disabled = false; }
+}
+
+const LABELS = { category: "Category", keyword: "Keyword", minPrice: "Min $", maxPrice: "Max $", minReviews: "Min reviews", maxReviews: "Max reviews", minRating: "Min rating", maxRank: "Max rank", maxSellers: "Max sellers", minMonthlySales: "Min sales/mo", minMargin: "Min margin %" };
+
+function sorted() {
+  const p = [...STATE.products], s = STATE.sort;
+  const key = { score: (x) => -x.score.total, monthlySales: (x) => -x.monthlySales, revenue: (x) => -x.revenue, margin: (x) => -x.profit.marginPct, price: (x) => x.price, reviews: (x) => x.reviews }[s];
+  return p.sort((a, b) => key(a) - key(b));
+}
+
+function render() {
+  const r = STATE.last;
+  const list = sorted();
+  $("bar").hidden = !r; $("tbl").hidden = !list.length; $("foot").hidden = !list.length; $("empty").hidden = !!list.length;
+  if (!r) return;
+  const tags = Object.entries(r.filters).map(([k, v]) => `<span class="tag">${LABELS[k] || k}: ${esc(v)}</span>`).join("");
+  $("info").innerHTML = `<b>${list.length}</b> products${r.total > list.length ? ` (top of ${n(r.total)})` : ""} · understood by ${r.parsedBy === "ai" ? "AI" : "basic parser"} ${tags}${r.tokensLeft != null ? ` <span class="muted">· Keepa tokens left: ${n(r.tokensLeft)}</span>` : ""}`;
+  if (!list.length) { $("empty").innerHTML = "No products matched. Try wider filters (higher price range, more reviews, or no margin minimum)."; return; }
+  $("rows").innerHTML = list.map((p) => `
+    <tr>
+      <td>${p.image ? `<img class="pimg" src="${esc(p.image)}" alt="" loading="lazy">` : `<div class="ph">${p.demo ? "DEMO" : "No img"}</div>`}</td>
+      <td><div class="ttl"><a href="#" data-d="${p.asin}">${esc(p.title)}</a><small>${esc(p.category)} · ${p.asin}</small></div>
+        <div class="note">${esc(p.aiNote || p.reasons.verdict + (p.reasons.good[0] ? " — " + p.reasons.good[0] : ""))}</div></td>
+      <td><span class="score ${scls(p.score.total)}">${p.score.total}</span></td>
+      <td class="num">${money(p.price)}</td>
+      <td class="num">${n(p.monthlySales)}${p.salesIsEstimate ? '<span class="muted">*</span>' : ""}</td>
+      <td class="num hide-sm">${money(p.revenue, 0)}</td>
+      <td class="num">${n(p.reviews)}</td>
+      <td class="num hide-sm">${p.rating ?? "—"}</td>
+      <td class="num hide-sm">${n(p.offers)}</td>
+      <td class="num">${p.profit.marginPct}%</td>
+      <td class="num">${money(p.profit.net)}</td>
+      <td><button class="star ${WATCH[p.asin] ? "on" : ""}" data-w="${p.asin}" title="Watchlist">★</button></td>
+    </tr>`).join("");
+}
+
+function line(points, w, h, invert) {
+  if (!points || points.length < 2) return '<p class="muted">Not enough history yet.</p>';
+  const xs = points.map((p) => p[0]), ys = points.map((p) => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys) || 1;
+  const sx = (x) => ((x - x0) / (x1 - x0 || 1)) * (w - 50) + 45;
+  const sy = (y) => { const t = (y - y0) / (y1 - y0 || 1); return 10 + (invert ? t : 1 - t) * (h - 30); };
+  const d = points.map((p, i) => (i ? "L" : "M") + sx(p[0]).toFixed(1) + " " + sy(p[1]).toFixed(1)).join(" ");
+  const fmt = (v) => (v >= 1000 ? Math.round(v / 1000) + "k" : Math.round(v * 100) / 100);
+  const date = (t) => new Date(t).toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <text x="0" y="${invert ? h - 20 : 16}" font-size="11" fill="#6b7280">${fmt(y1)}</text>
+    <text x="0" y="${invert ? 16 : h - 20}" font-size="11" fill="#6b7280">${fmt(y0)}</text>
+    <text x="45" y="${h - 4}" font-size="11" fill="#6b7280">${date(x0)}</text>
+    <text x="${w - 5}" y="${h - 4}" font-size="11" fill="#6b7280" text-anchor="end">${date(x1)}</text>
+    <path d="${d}" fill="none" stroke="#1e1b8f" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function calcProfit(p, c) {
+  const price = Number(c.price), referral = price * (p.referralPct ?? 15) / 100, fba = Number(c.fba);
+  const supplier = Number(c.supplier), freight = Number(c.freight), ads = price * Number(c.adsPct) / 100, ret = price * Number(c.returnsPct) / 100;
+  const net = price - referral - fba - supplier - freight - ads - ret;
+  return { referral, net, margin: price ? (net / price) * 100 : 0, roi: supplier + freight ? (net / (supplier + freight)) * 100 : 0, monthly: net * p.monthlySales };
+}
+
+async function detail(asin) {
+  $("modal").innerHTML = '<p>Loading…</p>'; $("ov").classList.add("open");
+  try {
+    const qs = new URLSearchParams({ asin, supplierPct: $("c-supplierPct").value, freightPerUnit: $("c-freightPerUnit").value, adsPct: $("c-adsPct").value, returnsPct: $("c-returnsPct").value });
+    const p = await api("/api/product?" + qs);
+    const pr = p.profit, s = p.score;
+    const NAMES = { demand: ["Demand", 25], competition: ["Competition", 25], margin: ["Margin", 25], stability: ["Price stability", 10], trend: ["Trend", 10], risk: ["Risk", 5] };
+    $("modal").innerHTML = `
+      <button class="close" onclick="closeM()">×</button>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        ${p.image ? `<img src="${esc(p.image)}" style="width:96px;height:96px;object-fit:contain;border-radius:10px;background:var(--bg)">` : ""}
+        <div style="flex:1"><h2 style="margin:0 0 4px;font-size:20px">${esc(p.title)}</h2>
+          <div class="muted" style="font-size:13px">${esc(p.brand)} · ${esc(p.category)} · ${p.asin} · <a href="${esc(p.url)}" target="_blank" rel="noopener">View on Amazon ↗</a></div>
+          <div style="margin-top:8px"><span class="score ${scls(s.total)}">${s.total}</span> <b style="margin-left:6px">${esc(p.reasons.verdict)}</b></div></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><b>${money(p.price)}</b><span>Price</span></div>
+        <div class="kpi"><b>${n(p.monthlySales)}</b><span>Sales / month${p.salesIsEstimate ? " (est.)" : ""}</span></div>
+        <div class="kpi"><b>${money(p.revenue, 0)}</b><span>Revenue / month</span></div>
+        <div class="kpi"><b>${n(p.reviews)}</b><span>Reviews · ${p.rating ?? "—"}★</span></div>
+        <div class="kpi"><b>${n(p.offers)}</b><span>Sellers</span></div>
+        <div class="kpi"><b>#${n(p.rank)}</b><span>Best Sellers Rank</span></div>
+      </div>
+      <div class="two">
+        <div class="card"><h3>Price history</h3>${line(p.history.price, 420, 150, false)}</div>
+        <div class="card"><h3>Sales rank history <span class="muted" style="font-weight:400">(higher on chart = better)</span></h3>${line(p.history.rank, 420, 150, true)}</div>
+        <div class="card"><h3>Why this score</h3>
+          ${Object.entries(s.parts).map(([k, v]) => `<div class="brk"><span>${NAMES[k][0]}</span><div class="track"><div class="fill" style="width:${(v / NAMES[k][1]) * 100}%"></div></div><span class="num">${v}/${NAMES[k][1]}</span></div>`).join("")}
+          ${p.reasons.good.length ? `<h3 style="margin-top:12px">Good</h3><ul class="r good">${p.reasons.good.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+          ${p.reasons.bad.length ? `<h3 style="margin-top:12px">Risks</h3><ul class="r bad">${p.reasons.bad.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+        </div>
+        <div class="card"><h3>Profit &amp; ROI calculator</h3>
+          <div class="pc" id="pc">
+            <span>Selling price ($)</span><input data-k="price" type="number" step="0.01" value="${pr.price}">
+            <span>Supplier cost / unit ($)</span><input data-k="supplier" type="number" step="0.01" value="${pr.supplier}">
+            <span>Freight / unit ($)</span><input data-k="freight" type="number" step="0.01" value="${pr.freight}">
+            <span>FBA fee ($)</span><input data-k="fba" type="number" step="0.01" value="${pr.fba}">
+            <span>Ads (% of price)</span><input data-k="adsPct" type="number" value="${$("c-adsPct").value}">
+            <span>Returns (% of price)</span><input data-k="returnsPct" type="number" value="${$("c-returnsPct").value}">
+            <span>Amazon referral (${p.referralPct}%)</span><b id="pc-ref" class="num"></b>
+            <span class="tot">Net profit / unit</span><b class="tot num" id="pc-net"></b>
+            <span>Margin</span><b id="pc-margin" class="num"></b>
+            <span>ROI</span><b id="pc-roi" class="num"></b>
+            <span>Profit / month (at est. sales)</span><b id="pc-month" class="num"></b>
+          </div>
+          <p class="muted" style="font-size:12px;margin:10px 0 0">FBA fee ${p.fbaFee ? "from Amazon data" : "is an estimate"} — check it in Amazon's revenue calculator before buying stock.</p>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px"><button class="btn sm" onclick="toggleWatch('${p.asin}',true)">${WATCH[p.asin] ? "★ In watchlist" : "☆ Add to watchlist"}</button></div>`;
+    const upd = () => {
+      const c = {}; document.querySelectorAll("#pc input").forEach((i) => (c[i.dataset.k] = i.value || 0));
+      const r = calcProfit(p, c);
+      $("pc-ref").textContent = money(r.referral); $("pc-net").textContent = money(r.net);
+      $("pc-margin").textContent = r.margin.toFixed(1) + "%"; $("pc-roi").textContent = r.roi.toFixed(1) + "%";
+      $("pc-month").textContent = money(r.monthly, 0);
+      $("pc-net").style.color = r.net >= 0 ? "var(--good)" : "var(--bad)";
+    };
+    document.querySelectorAll("#pc input").forEach((i) => i.addEventListener("input", upd)); upd();
+    WATCH[p.asin] && (WATCH[p.asin] = slim(p), store.set("fn_watch", WATCH));
+  } catch (e) { $("modal").innerHTML = `<button class="close" onclick="closeM()">×</button><p class="notice err">${esc(e.message)}</p>`; }
+}
+function closeM() { $("ov").classList.remove("open"); }
+function slim(p) { return { asin: p.asin, title: p.title, image: p.image, price: p.price, score: p.score.total, monthlySales: p.monthlySales, margin: p.profit.marginPct, added: Date.now() }; }
+
+function toggleWatch(asin, fromModal) {
+  if (WATCH[asin]) delete WATCH[asin];
+  else { const p = STATE.products.find((x) => x.asin === asin); WATCH[asin] = p ? slim(p) : { asin, title: asin, added: Date.now() }; }
+  store.set("fn_watch", WATCH); $("wcount").textContent = Object.keys(WATCH).length; render();
+  if (fromModal) detail(asin);
+}
+
+function showWatch() {
+  const items = Object.values(WATCH).sort((a, b) => b.added - a.added);
+  $("modal").innerHTML = `<button class="close" onclick="closeM()">×</button><h2 style="margin-top:0">Your watchlist</h2>
+    ${items.length ? `<table class="tbl"><tr><th>Product</th><th>Score</th><th>Price</th><th>Sales/mo</th><th>Margin</th><th></th></tr>
+    ${items.map((p) => `<tr><td><a href="#" data-d="${p.asin}">${esc(p.title)}</a></td><td>${p.score ?? "—"}</td><td>${money(p.price)}</td><td>${n(p.monthlySales)}</td><td>${p.margin ?? "—"}%</td>
+      <td><button class="btn ghost sm" onclick="toggleWatch('${p.asin}');showWatch()">Remove</button></td></tr>`).join("")}</table>`
+      : '<p class="muted">No saved products yet. Click ★ on any result to save it here.</p>'}
+    <p class="muted" style="font-size:12px">Saved in this browser only.</p>`;
+  $("ov").classList.add("open");
+}
+
+function csv() {
+  const head = ["ASIN","Title","Category","Score","Verdict","Price","Sales/mo","Estimated","Revenue/mo","Reviews","Rating","Sellers","Rank","Margin %","Net profit/unit","URL"];
+  const rows = sorted().map((p) => [p.asin, p.title, p.category, p.score.total, p.reasons.verdict, p.price, p.monthlySales, p.salesIsEstimate ? "yes" : "no", p.revenue, p.reviews, p.rating, p.offers, p.rank, p.profit.marginPct, p.profit.net, p.url]);
+  const text = [head, ...rows].map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" })); a.download = "findnexra-products.csv"; a.click();
+}
+
+document.addEventListener("click", (e) => {
+  const d = e.target.closest("[data-d]"); if (d) { e.preventDefault(); detail(d.dataset.d); }
+  const w = e.target.closest("[data-w]"); if (w) toggleWatch(w.dataset.w);
+  if (e.target === $("ov")) closeM();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeM(); });
+$("go").onclick = () => run(false);
+$("apply").onclick = () => run(true);
+$("reset").onclick = () => { for (const k of FILTERS) $("f-" + k).value = ""; };
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); run(false); } });
+$("sort").onchange = (e) => { STATE.sort = e.target.value; render(); };
+$("csv").onclick = csv;
+$("watchBtn").onclick = showWatch;
+$("wcount").textContent = Object.keys(WATCH).length;
+$("examples").innerHTML = EXAMPLES.map((x) => `<button class="chip">${esc(x)}</button>`).join("");
+$("examples").addEventListener("click", (e) => { if (e.target.classList.contains("chip")) { $("q").value = e.target.textContent; run(false); } });
+
+api("/api/status").then((s) => {
+  $("mode").textContent = s.mode === "live" ? "Live Amazon data" : "Demo mode";
+  $("mode").classList.toggle("live", s.mode === "live");
+  $("f-category").innerHTML += s.categories.map((c) => `<option>${esc(c)}</option>`).join("");
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { $("q").value = q; run(false); }
+}).catch(() => ($("mode").textContent = "Offline"));
+</script>
+</body>
+</html>
