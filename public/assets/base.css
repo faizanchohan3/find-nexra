@@ -32,12 +32,12 @@ header.top .wrap{display:flex;align-items:center;gap:14px;min-height:66px}
 .acct:hover,.acct.on{background:rgba(255,255,255,.16)}
 .acct.signin{padding:8px 16px;font-weight:600}
 .avatar{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--navy);background:linear-gradient(135deg,#e0e7ff,#a5b4fc)}
-.acct .who{display:flex;flex-direction:column;line-height:1.15}
+.acct .who{display:flex;flex-direction:column;line-height:1.15;max-width:140px;overflow:hidden;text-overflow:ellipsis}
 .acct .who small{font-size:11px;color:#a5b4fc;font-weight:600}
 .menu-btn{display:none;margin-left:auto;width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;align-items:center;justify-content:center}
 .menu-btn svg{width:22px;height:22px}
 .menu-btn .x{display:none}.menu-btn[aria-expanded="true"] .x{display:block}.menu-btn[aria-expanded="true"] .bars{display:none}
-@media (max-width:900px){
+@media (max-width:1080px){
   header.top .wrap{flex-wrap:wrap;min-height:60px}
   .logo small{display:none}
   .menu-btn{display:inline-flex}

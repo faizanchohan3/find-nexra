@@ -20,6 +20,7 @@ window.FN = (() => {
     search: '<path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3"/>',
     spark: '<path d="M12 3l1.8 4.9L19 9.7l-4.9 1.8L12 16.5l-1.8-5L5 9.7l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     store: '<path d="M4 9l1.5-5h13L20 9M4 9v11h16V9M4 9h16M9 20v-6h6v6"/>',
+    help: '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/>',
     bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
   };
   const icon = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
@@ -31,7 +32,7 @@ window.FN = (() => {
     const set = (open) => { top.classList.toggle("open", open); btn.setAttribute("aria-expanded", open); btn.setAttribute("aria-label", open ? "Close menu" : "Open menu"); };
     btn.addEventListener("click", () => set(!top.classList.contains("open")));
     document.addEventListener("keydown", (e) => e.key === "Escape" && set(false));
-    matchMedia("(min-width:901px)").addEventListener("change", (m) => m.matches && set(false));
+    matchMedia("(min-width:1081px)").addEventListener("change", (m) => m.matches && set(false));
   }
 
   async function nav() {
@@ -40,7 +41,7 @@ window.FN = (() => {
     menu();
     const here = location.pathname.replace(/\.html$/, "").replace(/\/$/, "") || "/";
     const link = (href, label, ic) => `<a class="navlink${here === href ? " on" : ""}" href="${href}"${here === href ? ' aria-current="page"' : ""}>${icon(ic)}<span>${label}</span></a>`;
-    const links = `<div class="navlinks">${link("/", "Research", "search")}${link("/studio", "AI Store Manager", "spark")}${link("/amazon", "My Amazon store", "store")}</div>`;
+    const links = `<div class="navlinks">${link("/", "Research", "search")}${link("/studio", "AI Store Manager", "spark")}${link("/how-it-works", "How it works", "help")}${link("/amazon", "My Amazon store", "store")}</div>`;
     const on = here === "/account" ? " on" : "";
     try {
       const s = await loadStatus();
