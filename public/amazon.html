@@ -17,7 +17,11 @@ svg.chart{width:100%;height:140px}
 @media (max-width:860px){.grid2{grid-template-columns:1fr}}
 </style></head>
 <body>
-<header class="top"><div class="wrap"><a class="logo" href="/">find<span>Nexra</span></a><nav id="nav"></nav></div></header>
+<header class="top" id="top"><div class="wrap">
+  <a class="logo" href="/" aria-label="findNexra home"><img src="/favicon.svg?v=2" alt="" width="34" height="34"><span>find<b>Nexra</b><small>by Nexra LLC</small></span></a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg class="bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <nav id="nav" aria-label="Main"></nav>
+</div></header>
 <section class="hero"><div class="wrap"><h1>My Amazon store</h1><p>Connect Seller Central (read-only) to audit your listings and see why sales go up or down.</p></div></section>
 <main class="wrap" id="main"><p>Loading…</p></main>
 <footer class="foot">findNexra only reads your listings and sales. It cannot change prices, listings or ads. You can disconnect anytime here or in Seller Central → Manage Your Apps.</footer>

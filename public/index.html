@@ -60,10 +60,11 @@ svg.chart{width:100%;height:150px}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap">
-  <a class="logo" href="/">find<span>Nexra</span></a>
+<header class="top" id="top"><div class="wrap">
+  <a class="logo" href="/" aria-label="findNexra home"><img src="/favicon.svg?v=2" alt="" width="34" height="34"><span>find<b>Nexra</b><small>by Nexra LLC</small></span></a>
   <span id="mode" class="badge">…</span>
-  <nav id="nav"></nav>
+  <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav"><svg class="bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <nav id="nav" aria-label="Main"></nav>
 </div></header>
 
 <section class="hero"><div class="wrap">
