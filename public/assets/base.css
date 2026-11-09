@@ -37,7 +37,7 @@ header.top .wrap{display:flex;align-items:center;gap:14px;min-height:66px}
 .menu-btn{display:none;margin-left:auto;width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;align-items:center;justify-content:center}
 .menu-btn svg{width:22px;height:22px}
 .menu-btn .x{display:none}.menu-btn[aria-expanded="true"] .x{display:block}.menu-btn[aria-expanded="true"] .bars{display:none}
-@media (max-width:1080px){
+@media (max-width:1200px){
   header.top .wrap{flex-wrap:wrap;min-height:60px}
   .logo small{display:none}
   .menu-btn{display:inline-flex}
