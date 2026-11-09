@@ -64,7 +64,7 @@ window.FN = (() => {
     const btn = (id, name, price) => links[id] ? `<a class="btn sm" href="${links[id]}" target="_blank" rel="noopener">${name} · $${price}/mo</a>` : "";
     return `<div class="notice err" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
       <span style="flex:1;min-width:220px">${esc(err.message)}${status?.user ? "" : ' — <a href="/account">log in or create a free account</a>'}</span>
-      ${btn("starter", "Starter", 19)}${btn("pro", "Pro", 39)}${btn("storemanager", "Store Manager", 99)}</div>`;
+      ${btn("starter", "Pro", "39.99")}${btn("pro", "Elite", "79.99")}${btn("storemanager", "Store Manager", 199)}</div>`;
   }
 
   function errorHtml(e) { return e.upgrade || e.status === 401 ? upgradeBox(e) : `<div class="notice err">${esc(e.message)}</div>`; }

@@ -31,7 +31,7 @@
   <h1>Your Amazon business, <em>run by AI</em> — approved by you.</h1>
   <p class="lead">One assistant for the busy work between finding a product and selling it: listings, suppliers, quotes, PPC and your launch. You describe the job, findNexra does the first draft, you make the call.</p>
   <div class="ctas">
-    <a class="btn cta" id="ctaBuy" href="/account" target="_blank" rel="noopener">Get Store Manager · $99/mo</a>
+    <a class="btn cta" id="ctaBuy" href="/account" target="_blank" rel="noopener">Get Store Manager · $199/mo</a>
     <a class="btn line" href="#workspace">Try it now</a>
     <a class="btn line" href="#available">What's included</a>
   </div>
@@ -67,7 +67,7 @@
 
 <section class="sec" id="available"><div class="wrap">
   <h2>What's included</h2>
-  <p class="sub2">Everything below works today. Pro includes 5 AI Store Manager runs a day; Store Manager includes 30 a day plus your Amazon store connection.</p>
+  <p class="sub2">Everything below works today. Elite includes 5 AI Store Manager runs a day; Store Manager includes 30 a day plus your Amazon store connection.</p>
   <div class="scroll" style="overflow-x:auto"><table class="avail"><thead><tr><th>Tool</th><th>What it does</th><th>Status</th></tr></thead><tbody><tr><td>Listing writer</td><td>Writes a full listing from your product details and keywords</td><td><span class="st now">Available</span></td></tr><tr><td>Image brief</td><td>Plans every image slot for your photographer</td><td><span class="st now">Available</span></td></tr><tr><td>Compliance check</td><td>Scans a listing for common Amazon policy problems — free</td><td><span class="st free">Free</span></td></tr><tr><td>Supplier finder</td><td>Supplier sites to search, a checklist and an RFQ email</td><td><span class="st now">Available</span></td></tr><tr><td>Supplier CRM</td><td>Tracks each supplier from first contact to chosen</td><td><span class="st now">Available</span></td></tr><tr><td>Quote analysis</td><td>Compares supplier replies and drafts your negotiation</td><td><span class="st now">Available</span></td></tr><tr><td>PPC plan</td><td>Campaigns, bids, negatives and a weekly plan</td><td><span class="st now">Available</span></td></tr><tr><td>Launch plan</td><td>13 phases with timing, costs and a checklist</td><td><span class="st now">Available</span></td></tr><tr><td>Saved projects</td><td>Keeps every result so you can reopen and reuse it</td><td><span class="st now">Available</span></td></tr><tr><td>Listing audit</td><td>Checks your live Amazon listings (Store Manager plan)</td><td><span class="st plan">Store Manager</span></td></tr><tr><td>Sales diagnosis</td><td>Charts your sales and explains changes (Store Manager plan)</td><td><span class="st plan">Store Manager</span></td></tr></tbody></table></div>
 </div></section>
 
@@ -75,11 +75,11 @@
   <h2>Plans with AI Store Manager</h2>
   <p class="sub2">Upgrade on nexrallc.com with the same email you use here — your plan switches on automatically.</p>
   <div class="prices">
-    <div class="price"><h3>Pro</h3><div class="amt">$39<small>/month</small></div><div class="muted">For sellers launching their first products.</div>
+    <div class="price"><h3>Elite</h3><div class="amt">$79.99<small>/month</small></div><div class="muted">For sellers launching their first products.</div>
       <ul><li>5 AI Store Manager runs a day</li><li>500 product searches a day</li><li>100 AI searches a day</li><li>Compare up to 10 products</li><li>Watchlist, saved searches and CSV export</li></ul>
-      <a class="btn ghost" id="buyPro" href="/account" target="_blank" rel="noopener">Choose Pro</a></div>
-    <div class="price best"><span class="tag">Everything included</span><h3>Store Manager</h3><div class="amt">$99<small>/month</small></div><div class="muted">For sellers running a live Amazon store.</div>
-      <ul><li>30 AI Store Manager runs a day</li><li>Connect your Amazon store (read-only)</li><li>100 listing audits a month + sales diagnosis</li><li>1,000 product searches a day</li><li>Everything in Pro</li></ul>
+      <a class="btn ghost" id="buyPro" href="/account" target="_blank" rel="noopener">Choose Elite</a></div>
+    <div class="price best"><span class="tag">Everything included</span><h3>Store Manager</h3><div class="amt">$199<small>/month</small></div><div class="muted">For sellers running a live Amazon store.</div>
+      <ul><li>30 AI Store Manager runs a day</li><li>Connect your Amazon store (read-only)</li><li>100 listing audits a month + sales diagnosis</li><li>1,000 product searches a day</li><li>Everything in Elite</li></ul>
       <a class="btn cta" id="buySm" href="/account" target="_blank" rel="noopener">Get Store Manager</a></div>
   </div>
   <p class="fine" style="opacity:1;color:var(--muted)">Prices in USD. Plans renew monthly until you cancel from your Nexra account.</p>
@@ -102,7 +102,7 @@
   <details><summary>Can it change my Amazon listings?</summary><p>No. The Amazon connection on the Store Manager plan is read-only — it audits listings and diagnoses sales. You make any changes in Seller Central.</p></details>
   <details><summary>Will it tell me if a product is profitable?</summary><p>Research gives you profit and ROI estimates, and the PPC plan works out your break-even ACoS. These are estimates — confirm fees in Amazon's revenue calculator before you order stock.</p></details>
   <details><summary>Are the suppliers it suggests verified?</summary><p>No. It points you to where to search and gives you a checklist to verify each supplier yourself — samples, documents, references and payment terms.</p></details>
-  <details><summary>What do I get for free?</summary><p>The compliance check is free for everyone, plus 5 product searches a day on the Free plan. AI Store Manager runs start with Pro.</p></details>
+  <details><summary>What do I get for free?</summary><p>The compliance check is free for everyone, plus 5 product searches a day on the Free plan. AI Store Manager runs start with Elite.</p></details>
   <details><summary>How do billing and cancelling work?</summary><p>Plans are bought on nexrallc.com in USD and renew monthly. Cancel anytime from your Nexra account.</p></details>
 </div></section>
 
@@ -140,7 +140,7 @@ function renderTabs() {
     type === "area" ? `<textarea id="i-${k}" rows="${k === "replies" ? 10 : 4}">${esc(val)}</textarea>` :
     type === "select" ? `<select id="i-${k}">${opts.map((o) => `<option>${o}</option>`).join("")}</select>` :
     `<input id="i-${k}" type="${type}" value="${esc(val)}">`}</div>`).join("") + `<button class="btn" id="run" style="width:100%">${t.btn}</button>
-    <p class="muted" style="font-size:12px">${TAB === "compliance" ? "Free for everyone." : "Uses 1 AI Store Manager run (Pro: 5/day · Store Manager: 30/day)."}</p>`;
+    <p class="muted" style="font-size:12px">${TAB === "compliance" ? "Free for everyone." : "Uses 1 AI Store Manager run (Elite: 5/day · Store Manager: 30/day)."}</p>`;
   $("run").onclick = run;
   $("crmCard").hidden = TAB !== "supplier";
   if (TAB === "supplier") loadCrm();
@@ -261,6 +261,6 @@ async function addSupplier() {
 }
 
 document.querySelectorAll("[data-go]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); TAB = a.dataset.go; renderTabs(); $("workspace").scrollIntoView({ behavior: "smooth" }); }));
-FN.loadStatus().then((s) => { STATUS = s; if (s.links) { $("ctaBuy").href = $("buySm").href = s.links.storemanager; $("buyPro").href = s.links.pro; } renderTabs(); loadProjects(); if (!s.user) $("msg").innerHTML = FN.upgradeBox({ message: "AI Store Manager is part of Pro (5 runs/day) and Store Manager (30 runs/day). The compliance check is free", links: s.links }); }).catch(() => renderTabs());
+FN.loadStatus().then((s) => { STATUS = s; if (s.links) { $("ctaBuy").href = $("buySm").href = s.links.storemanager; $("buyPro").href = s.links.pro; } renderTabs(); loadProjects(); if (!s.user) $("msg").innerHTML = FN.upgradeBox({ message: "AI Store Manager is part of Elite (5 runs/day) and Store Manager (30 runs/day). The compliance check is free", links: s.links }); }).catch(() => renderTabs());
 </script>
 </body></html>

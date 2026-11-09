@@ -16,7 +16,7 @@ export default route(async (req, res, user) => {
   const body = req.method === "POST" ? await readBody(req) : {};
   const type = (q.get("type") || "").trim() || body.type;
   if (!TYPES[type]) throw httpErr(400, "type must be watchlist, searches, suppliers or projects");
-  if ((type === "suppliers" || type === "projects") && limits(user).studioPerDay === 0 && req.method !== "GET") throw httpErr(402, "Supplier CRM and projects are part of Pro and Store Manager", { upgrade: true });
+  if ((type === "suppliers" || type === "projects") && limits(user).studioPerDay === 0 && req.method !== "GET") throw httpErr(402, "Supplier CRM and projects are part of Elite and Store Manager", { upgrade: true });
   const key = `${type}:${user.email}`;
   const list = (await db.get(key)) || [];
 

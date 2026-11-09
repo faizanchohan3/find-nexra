@@ -34,7 +34,7 @@ async function init() {
   const st = await FN.loadStatus();
   if (!st.user) { m.innerHTML = FN.upgradeBox({ message: "Log in with a Store Manager plan to connect your Amazon store", links: st.links }); return; }
   const a = await api("/api/amazon?action=status");
-  if (!a.allowed) { m.innerHTML = FN.upgradeBox({ message: "Connecting your Amazon store is part of the Store Manager plan ($99/mo)", links: st.links }); return; }
+  if (!a.allowed) { m.innerHTML = FN.upgradeBox({ message: "Connecting your Amazon store is part of the Store Manager plan ($199/mo)", links: st.links }); return; }
   if (!a.configured) { m.innerHTML = '<div class="notice">The Amazon connection is being set up by Nexra (waiting for Amazon SP-API approval). Check back soon.</div>'; return; }
   if (!a.connection) {
     m.innerHTML = `<div class="card" style="margin:24px 0;max-width:640px"><h3>Connect your Amazon Seller Central</h3>

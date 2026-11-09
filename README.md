@@ -18,9 +18,9 @@ your Shopify store.
 | Plan | Price | Shopify SKU |
 |---|---|---|
 | Free | $0 — 5 searches/day, 1 results page | — |
-| Starter | $19/mo | `FINDNEXRA-STARTER` |
-| Pro | $39/mo | `FINDNEXRA-PRO` |
-| Store Manager | $99/mo — everything incl. Amazon store connection | `FINDNEXRA-STOREMANAGER` |
+| Pro | $39.99/mo | `FINDNEXRA-STARTER` |
+| Elite | $79.99/mo | `FINDNEXRA-PRO` |
+| Store Manager | $199/mo — everything incl. Amazon store connection | `FINDNEXRA-STOREMANAGER` |
 
 Limits are in `lib/plans.js`. Emails in `ADMIN_EMAILS` always get Store Manager.
 
@@ -62,8 +62,8 @@ Without keys the app runs in **demo mode** (sample products, sample AI answers, 
 
 ## 3. Paid plans through Shopify
 
-1. Create three products on nexrallc.com: **findNexra Starter** ($19), **findNexra Pro** ($39),
-   **findNexra Store Manager** ($99), with the SKUs above and handles `findnexra-starter`,
+1. Create three products on nexrallc.com: **findNexra Pro** ($39.99), **findNexra Elite** ($79.99),
+   **findNexra Store Manager** ($199), with the SKUs above and handles `findnexra-starter`,
    `findnexra-pro`, `findnexra-store-manager`. Turn off "Requires shipping".
 2. For automatic monthly billing, install a subscriptions app (e.g. **Shopify Subscriptions**, free) and add a
    monthly plan to each product. Without it, each purchase gives 33 days of access.

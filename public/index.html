@@ -253,7 +253,7 @@ function compareBar() {
 
 function showCompare() {
   const max = S.status?.plan?.compare ?? 0;
-  if (!max) { $("modal").innerHTML = `<button class="close" onclick="closeM()">×</button>${FN.upgradeBox({ message: "Comparing products is included with Starter (3), Pro and Store Manager (10)", links: S.status?.links })}`; $("ov").classList.add("open"); return; }
+  if (!max) { $("modal").innerHTML = `<button class="close" onclick="closeM()">×</button>${FN.upgradeBox({ message: "Comparing products is included with Pro (3), Elite and Store Manager (10)", links: S.status?.links })}`; $("ov").classList.add("open"); return; }
   const items = S.products.filter((p) => S.compare.has(p.asin)).slice(0, max);
   const rows = [
     ["Score", (p) => `<span class="score ${scls(p.score.total)}">${p.score.total}</span>`], ["Verdict", (p) => esc(p.reasons.verdict)],
@@ -372,7 +372,7 @@ async function detail(asin) {
             <span>Est. your sales / month</span><b id="bp-sales" class="num"></b>
             <span>Months to sell first order</span><b id="bp-months" class="num"></b>
             <span>Payback time</span><b id="bp-pay" class="num"></b>
-          </div>` : FN.upgradeBox({ message: "The launch budget planner is included with Starter, Pro and Store Manager", links: S.status?.links })}
+          </div>` : FN.upgradeBox({ message: "The launch budget planner is included with Pro, Elite and Store Manager", links: S.status?.links })}
         </div>
       </div>
       <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
